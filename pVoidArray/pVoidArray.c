@@ -139,6 +139,7 @@ static int8_t for_each(pVoidArray* array, pVoidArrayEachFn f, void* args) {
     if (!array->size) {
         return PV_OUTCODE_EMPTY_ARR;
     }
+	if(!f) return PV_OUTCODE_ARG_NULL;
     for (size_t i = 0; i < array->size; i+=1) {
         void* value = array->array[i];
         f(value, i, args);
@@ -151,8 +152,7 @@ static const pVoidArrayInterface interface = {
     push, pop, get, set, last, size, capacity, reserve, premove, clear, for_each
 };
 
-int8_t pVoidArray_new_hidden(pVoidArray** array,
-    const char* file, size_t line, const char* func) {
+int8_t pVoidArray_new(pVoidArray** array) {
 
     if(!array) return PV_OUTCODE_ARG_NULL;
     (*array) = (pVoidArray*) malloc(

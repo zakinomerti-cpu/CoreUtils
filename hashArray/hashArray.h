@@ -25,7 +25,7 @@ typedef struct hashArrayPair {
 	size_t		keyLen;
 	void*		value;
 	size_t		bucket;
-	uint64_t	hash;
+	int		hash;
 } hashArrayPair;
 
 #define HA_DECLARE_INTERFACE(interfaceName, owner, type)	\
@@ -43,7 +43,31 @@ typedef struct hashArrayPair {
 		int8_t (*clear)(owner* self); \
 		int8_t (*foreach)(owner* self, hashArrayEachFn c, void* args); \
 		int8_t (*flatten)(const owner* self, hashArrayPair** out, size_t* outCount); \
-	} interfaceName;
+	} interfaceName; \
+	int8_t owner##_delete(owner** array);
+
+
+#define HA_delete(owner) \
+	int8_t owner##_delete(owner** array) { \
+		if (!array) { \
+			return HA_OUTCODE_ARG_NULL; \
+		} \
+		if (!*array) { \
+			return HA_OUTCODE_INVALID_TABLE; \
+		} \
+		\
+		int8_t r = hashArray_delete(&(*array)->hashArr); \
+		if(r != HA_OUTCODE_OK) { \
+			return r; \
+		} \
+		free(*array); \
+		*array = NULL; \
+		return r; \
+	}
+
+
+
+
 
 #define HA_put(owner, hashArr, type) \
 	static int8_t (owner##_put)(owner* self, const void* key, size_t keyLen, type* value) { \
@@ -155,6 +179,7 @@ typedef struct hashArrayPair {
 	}
 
 #define HA_REALIZE_INTERFACE(owner, hashArr, type) \
+	HA_delete(owner) \
 	HA_put(owner, hashArr, type) \
 	HA_set(owner, hashArr, type) \
 	HA_get(owner, hashArr, type) \
@@ -171,10 +196,7 @@ typedef struct hashArrayPair {
 #define HA_DECLARE_CONTAINER(name, funcNameThatUsedToCreateYourNewTable, interfaceName, hashArr) \
 	int8_t funcNameThatUsedToCreateYourNewTable( \
 		name** table, \
-		size_t initialCapacity, \
-		const char* file, \
-		size_t line, \
-		const char* func \
+		size_t initialCapacity \
 	); \
 	struct name { \
 		hashArray* hashArr; \
@@ -190,21 +212,18 @@ typedef struct hashArrayPair {
 	}; \
 	int8_t funcNameThatUsedToCreateYourNewTable( \
 		name** table, \
-		size_t initialCapacity, \
-		const char* file, \
-		size_t line, \
-		const char* func \
+		size_t initialCapacity \
 	) \
 	{ \
 	if(!table) return HA_OUTCODE_ARG_NULL; \
-	(*table) = (name*)memallocate_debug( \
-		sizeof(name), file, line, func); \
+	(*table) = (name*)malloc( \
+		sizeof(name)); \
 	if (!*table) { \
 		return HA_OUTCODE_ALLOC_ERROR; \
 	} \
-	int8_t outcode = hashArray_new_hidden(&(*table)->hashArr, initialCapacity, file, line, func); \
+	int8_t outcode = hashArray_new(&(*table)->hashArr, initialCapacity); \
 	if(outcode != HA_OUTCODE_OK) { \
-		memfree(*table); \
+		free(*table); \
 		*table = NULL; \
 		return outcode; \
 	} \
@@ -213,7 +232,7 @@ typedef struct hashArrayPair {
 }
 
 #define HA_NEW(funcNameThatUsedToCreateYourNewTable, table, initialCapacity) \
-	funcNameThatUsedToCreateYourNewTable(table, initialCapacity, __FILE__, __LINE__, __func__)
+	funcNameThatUsedToCreateYourNewTable(table, initialCapacity)
 
 HA_DECLARE_INTERFACE(hashArrayInterface, hashArray, void)
 

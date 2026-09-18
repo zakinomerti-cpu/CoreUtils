@@ -230,8 +230,7 @@ static int8_t rehash(hashArray* table, size_t newCapacity) {
 		}
 	}
 
-	pVoidArray* buckts = table->buckets;
-	bucketsRelease(&buckets, 0);
+	bucketsRelease(&old, 0);
 	table->buckets = buckets;
 	table->capacity = newCapacity;
 	return HA_OUTCODE_OK;
