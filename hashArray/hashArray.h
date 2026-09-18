@@ -16,20 +16,16 @@ typedef enum {
 	HA_OUTCODE_UNKNOWN_ERROR
 } HA_OUTCODE;
 
-/* фактор загрузки, после которого capacity удваивается */
 #define HA_MAX_LOAD_FACTOR 0.75
-/* стартовое число бакетов, если запрошено 0 */
 #define HA_DEFAULT_CAPACITY 8
 
 typedef int8_t (*hashArrayEachFn)(const void* key, size_t keyLen, void* value, void* args);
-
-/* одна запись плоского плоского снимка не владеющая блять ты тупая! */
 typedef struct hashArrayPair {
-	const void* key;
-	size_t      keyLen;
+	const void*	key;
+	size_t		keyLen;
 	void*		value;
-	size_t      bucket;
-	uint64_t    hash;
+	size_t		bucket;
+	uint64_t	hash;
 } hashArrayPair;
 
 #define HA_DECLARE_INTERFACE(interfaceName, owner, type)	\
@@ -224,18 +220,14 @@ HA_DECLARE_INTERFACE(hashArrayInterface, hashArray, void)
 typedef struct hashArrayElement hashArrayElement;
 
 struct hashArray {
-	size_t size;                        /* число пар */
-	size_t capacity;                    /* число бакетов */
-	void* buckets;                /* слоты: цепочка или NULL */
+	size_t size;
+	size_t capacity;
+	void* buckets;
 	const hashArrayInterface* ops;
 };
 
-int8_t hashArray_new_hidden(hashArray** table, size_t initialCapacity,
-	const char* file, size_t line, const char* func);
-#define hashArray_new(table, initialCapacity) \
-	hashArray_new_hidden(table, initialCapacity, __FILE__, __LINE__, __func__)
+int8_t hashArray_new(hashArray** table, size_t initialCapacity);
 int8_t hashArray_delete(hashArray** table);
-
 int8_t hashArray_flat_delete(hashArrayPair** flat);
 
 #endif

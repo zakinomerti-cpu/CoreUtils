@@ -1,14 +1,13 @@
 #include "pVoidArray.h"
-#include "../memallocate/memallocate.h"
+#include "stdlib.h"
 
 static int8_t push(pVoidArray* array, void* element) {
     if (!array) return PV_OUTCODE_ARG_NULL;
     if (array->capacity <= array->size) {
         size_t nCap = array->capacity == 0 ? 4 : array->capacity * 2;
 
-        void** tmp = memreallocate_debug(
-            array->array, nCap * sizeof(void*),
-            getFile(array), getLine(array), getFunc(array)
+        void** tmp = realloc(
+            array->array, nCap * sizeof(void*)
         );
         if (!tmp) return PV_OUTCODE_ALLOC_ERROR;
         array->capacity = nCap;
@@ -95,9 +94,8 @@ static int8_t reserve(pVoidArray* array, size_t newCapacity) {
     if (array->capacity >= newCapacity) {
         return PV_OUTCODE_OK;
     }
-    void** tmp = memreallocate_debug(
-        array->array, sizeof(void*)*newCapacity,
-        getFile(array), getLine(array), getFunc(array));
+    void** tmp = realloc(
+        array->array, sizeof(void*)*newCapacity);
     if (!tmp) return PV_OUTCODE_ALLOC_ERROR;
     array->capacity = newCapacity;
     array->array = tmp;
@@ -157,8 +155,8 @@ int8_t pVoidArray_new_hidden(pVoidArray** array,
     const char* file, size_t line, const char* func) {
 
     if(!array) return PV_OUTCODE_ARG_NULL;
-    (*array) = (pVoidArray*) memallocate_debug(
-        sizeof(pVoidArray), file, line, func);
+    (*array) = (pVoidArray*) malloc(
+        sizeof(pVoidArray));
 
     if (!*array) {
         return PV_OUTCODE_ALLOC_ERROR;
@@ -178,8 +176,8 @@ int8_t pVoidArray_delete(pVoidArray** array) {
     if(!*array) {
         return PV_OUTCODE_INVALID_ARR;
     }
-    memfree((*array)->array);
-    memfree(*array);
+    free((*array)->array);
+    free(*array);
     *array = NULL;
     return PV_OUTCODE_OK;
 }

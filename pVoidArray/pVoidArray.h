@@ -167,14 +167,14 @@ typedef int8_t (*pVoidArrayEachFn)(void *value, size_t index, void *args);
 	) \
 	{ \
 	if(!array) return PV_OUTCODE_ARG_NULL; \
-	(*array) = (name*)memallocate_debug( \
-		sizeof(name), file, line, func); \
+	(*array) = (name*)malloc( \
+		sizeof(name)); \
 	if (!*array) { \
 		return PV_OUTCODE_ALLOC_ERROR; \
 	} \
-	int8_t outcode = pVoidArray_new_hidden(&(*array)->pVoidArr, file, line, func); \
+	int8_t outcode = pVoidArray_new(&(*array)->pVoidArr); \
 	if(outcode != PV_OUTCODE_OK) { \
-		memfree(*array); \
+		free(*array); \
 		*array = NULL; \
 		return outcode; \
 	} \
@@ -183,7 +183,7 @@ typedef int8_t (*pVoidArrayEachFn)(void *value, size_t index, void *args);
 }
 
 #define PV_NEW(funcNameThatUsedToCreateYourNewArray, array) \
-	funcNameThatUsedToCreateYourNewArray(array, __FILE__, __LINE__, __func__)
+	funcNameThatUsedToCreateYourNewArray(array);
 
 PV_DECLARE_INTERFACE(pVoidArrayInterface, pVoidArray, void)
 
@@ -194,11 +194,7 @@ struct pVoidArray {
 	const pVoidArrayInterface* ops;
 };
 
-int8_t pVoidArray_new_hidden(pVoidArray** array,
-	const char* file, size_t line, const char* func);
-#define pVoidArray_new(array) pVoidArray_new_hidden(array, __FILE__, __LINE__, __func__)
+int8_t pVoidArray_new(pVoidArray** array);
 int8_t pVoidArray_delete(pVoidArray** array);
-
-
 
 #endif
