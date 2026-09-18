@@ -1,16 +1,15 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.14)
 project(CoreUtils C)
-
-set(CMAKE_C_STANDARD 99)
 
 add_library(core STATIC
     hashArray/pvd_realization.c
     pVoidArray/pVoidArray.c
 )
 
-add_executable(CoreUtils main.c)
-
+target_compile_features(core PUBLIC c_std_99)
 target_include_directories(core PUBLIC
-	${CMAKE_SOURCE_DIR}/pVoidArray/
+	${CMAKE_CURRENT_SOURCE_DIR}/pVoidArray/
+	${CMAKE_CURRENT_SOURCE_DIR}/hashArray/
 )
-target_link_libraries(CoreUtils PRIVATE core)
+
+add_library(CoreUtils::core ALIAS core)
